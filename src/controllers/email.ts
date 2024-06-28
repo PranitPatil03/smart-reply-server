@@ -1,7 +1,13 @@
-import { Request, Response } from "express";
-import { fetchUserEmails } from "../services/fetchEmails";
 import { cache } from "..";
-import { TokenType } from "../util/types";
+import { Request, Response } from "express";
+import { EmailData, EmailDetails, TokenType } from "../util/types";
+import { fetchUserEmails } from "../services/fetchEmails";
+import crypto from "crypto";
+
+import { PrismaClient } from "@prisma/client";
+import { email } from "../util/util";
+
+const prisma = new PrismaClient();
 
 export const fetchUserEmailsHandler = async (req: Request, res: Response) => {
   const userId = "unique_user_identifier";
@@ -15,6 +21,7 @@ export const fetchUserEmailsHandler = async (req: Request, res: Response) => {
 
   try {
     const emails = await fetchUserEmails(tokens.access_token);
+
     console.log("Emails", emails);
     res.json(emails);
   } catch (error) {

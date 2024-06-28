@@ -1,4 +1,4 @@
-import { google, gmail_v1 } from "googleapis";
+import { google } from "googleapis";
 
 const oauth2Client = new google.auth.OAuth2();
 
@@ -13,7 +13,7 @@ export const fetchUserEmails = async (accessToken: string) => {
   try {
     const response = await gmail.users.messages.list({
       userId: "me",
-      maxResults: 10,
+      maxResults: 1,
     });
 
     const messages = response.data.messages || [];

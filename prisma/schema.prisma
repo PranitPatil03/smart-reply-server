@@ -14,46 +14,31 @@ datasource db {
 }
 
 model User {
-  id      String  @id @default(uuid())
-  emailId String  @unique
-  emails  Email[] @relation("UserEmails")
+  id     String     @id @default(uuid())
+  email  String     @unique
+  emails EmailRef[]
+  Email  Email[]
 }
 
 model Email {
-  id           String   @id @default(uuid())
-  emailId      String   @unique
-  threadId     String
-  labelIds     String[]
-  snippet      String
-  internalDate DateTime
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  payloadId    String?  @unique
-  userId       String?
-  user         User?    @relation("UserEmails", fields: [userId], references: [id])
-  payload      Payload? @relation(fields: [payloadId], references: [id])
+  id         String   @id @default(uuid())
+  subject    String
+  sender     String
+  recipients String[]
+  body       String
+  bodyHtml   String
+  timestamp  DateTime @default(now())
+  userId     String?
+
+  User     User?      @relation(fields: [userId], references: [id])
+  EmailRef EmailRef[]
 }
 
-model Payload {
-  id      String   @id @default(uuid())
-  emailId String
-  headers Header[]
-  body    Body?
-  Email   Email?
-}
+model EmailRef {
+  id     String @id @default(uuid())
+  userId String
+  mailId String
 
-model Header {
-  id        String  @id @default(uuid())
-  payloadId String
-  name      String
-  value     String
-  payload   Payload @relation(fields: [payloadId], references: [id])
-}
-
-model Body {
-  id         String  @id @default(uuid())
-  payloadId  String  @unique
-  size       Int
-  data       String
-  payloadRef Payload @relation(fields: [payloadId], references: [id])
+  User  User  @relation(fields: [userId], references: [id])
+  Email Email @relation(fields: [mailId], references: [id])
 }
