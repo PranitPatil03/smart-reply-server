@@ -1,4 +1,93 @@
+import jwt from "jsonwebtoken";
+import CryptoJS from "crypto-js";
+import { gmail_v1 } from "googleapis";
+import { PrismaClient } from "@prisma/client";
 import { DecodedIdToken, EmailData } from "./types";
+
+const prisma = new PrismaClient();
+
+export const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+
+export function encrypt(value: string): string {
+  if (!ENCRYPTION_KEY) {
+    throw new Error("ENCRYPTION_KEY is not set");
+  }
+  const ciphertext = CryptoJS.AES.encrypt(value, ENCRYPTION_KEY).toString();
+  return ciphertext;
+}
+
+export const UserEmail = (idToken: string) => {
+  const decoded = jwt.decode(idToken) as DecodedIdToken | null;
+
+  if (decoded) {
+    const userEmail = decoded.email;
+
+    return userEmail;
+  } else {
+    console.error("Failed to decode ID token");
+  }
+};
+
+export const mapToEmailData = (message: gmail_v1.Schema$Message): EmailData => {
+  return {
+    id: message.id!,
+    threadId: message.threadId!,
+    labelIds: message.labelIds || [],
+    snippet: message.snippet || "",
+    payload: {
+      headers: (message.payload?.headers || []).map((header) => ({
+        name: header.name || "",
+        value: header.value || "",
+      })),
+      parts: (message.payload?.parts || []).map((part) => ({
+        partId: part.partId || "",
+        mimeType: part.mimeType || "",
+        filename: part.filename || "",
+        headers: (part.headers || []).map((header) => ({
+          name: header.name || "",
+          value: header.value || "",
+        })),
+        body: {
+          size: part.body?.size || 0,
+          data: part.body?.data || "",
+        },
+      })),
+      partId: "",
+      mimeType: "",
+      filename: "",
+    },
+    sizeEstimate: message.sizeEstimate || 0,
+    internalDate: message.internalDate || "",
+    historyId: message.historyId || "",
+  };
+};
+
+async function main() {
+  const userId = "pranit.work.3112@gmail.com";
+
+  await prisma.emailRef.deleteMany({
+    where: {
+      userId: userId,
+    },
+  });
+
+  await prisma.email.deleteMany({
+    where: {
+      userId: userId,
+    },
+  });
+
+  console.log("Incorrect data deleted successfully");
+}
+
+// main()
+//   .catch((e) => {
+//     console.error(e);
+//     process.exit(1);
+//   })
+//   .finally(async () => {
+//     await prisma.$disconnect();
+//   });
 
 export const email: EmailData[] = [
   {
@@ -182,96 +271,3 @@ export const email: EmailData[] = [
     internalDate: "1719575028000",
   },
 ];
-
-import { PrismaClient } from "@prisma/client";
-
-import jwt, { JwtPayload } from "jsonwebtoken";
-
-import { gmail_v1 } from "googleapis";
-const prisma = new PrismaClient();
-
-async function main() {
-  const userId = "pranit.work.3112@gmail.com";
-
-  await prisma.emailRef.deleteMany({
-    where: {
-      userId: userId,
-    },
-  });
-
-  await prisma.email.deleteMany({
-    where: {
-      userId: userId,
-    },
-  });
-
-  console.log("Incorrect data deleted successfully");
-}
-
-// main()
-//   .catch((e) => {
-//     console.error(e);
-//     process.exit(1);
-//   })
-//   .finally(async () => {
-//     await prisma.$disconnect();
-//   });
-
-export const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
-
-export function encrypt(value: string): string {
-  if (!ENCRYPTION_KEY) {
-    throw new Error("ENCRYPTION_KEY is not set");
-  }
-  const ciphertext = CryptoJS.AES.encrypt(value, ENCRYPTION_KEY).toString();
-  return ciphertext;
-}
-
-export const UserEmail = (idToken: string) => {
-  const decoded = jwt.decode(idToken) as DecodedIdToken | null;
-
-  if (decoded) {
-    const userEmail = decoded.email;
-    const userName = `${decoded.given_name} ${decoded.family_name}`;
-
-    console.log("User Email:", userEmail);
-    console.log("User Name:", userName);
-    return userEmail;
-  } else {
-    console.error("Failed to decode ID token");
-  }
-};
-
-export const mapToEmailData = (message: gmail_v1.Schema$Message): EmailData => {
-  return {
-    id: message.id!,
-    threadId: message.threadId!,
-    labelIds: message.labelIds || [],
-    snippet: message.snippet || "",
-    payload: {
-      headers: (message.payload?.headers || []).map((header) => ({
-        name: header.name || "",
-        value: header.value || "",
-      })),
-      parts: (message.payload?.parts || []).map((part) => ({
-        partId: part.partId || "",
-        mimeType: part.mimeType || "",
-        filename: part.filename || "",
-        headers: (part.headers || []).map((header) => ({
-          name: header.name || "",
-          value: header.value || "",
-        })),
-        body: {
-          size: part.body?.size || 0,
-          data: part.body?.data || "",
-        },
-      })),
-      partId: "",
-      mimeType: "",
-      filename: "",
-    },
-    sizeEstimate: message.sizeEstimate || 0,
-    internalDate: message.internalDate || "",
-    historyId: message.historyId || "",
-  };
-};

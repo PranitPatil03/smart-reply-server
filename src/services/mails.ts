@@ -1,4 +1,3 @@
-import CryptoJS from "crypto-js";
 import { google } from "googleapis";
 import { PrismaClient } from "@prisma/client";
 import { EmailData, EmailDetails } from "../util/types";
