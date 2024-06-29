@@ -1,10 +1,10 @@
-import { Request, Response } from "express";
+import { cache } from "..";
 import {
   getGoogleAccessToken,
   getGoogleAuthUrl,
-} from "../services/OAuth2Client";
-import { cache } from "..";
+} from "../services/authClient";
 import { TokenType } from "../util/types";
+import { Request, Response } from "express";
 
 export const authenticateGmailWithOAuth = (req: Request, res: Response) => {
   const authUrl = getGoogleAuthUrl();

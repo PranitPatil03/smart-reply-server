@@ -1,3 +1,5 @@
+import { JwtPayload } from "jsonwebtoken";
+
 export interface GoogleTokens {
   access_token: string;
   refresh_token: string;
@@ -11,6 +13,10 @@ export interface TokenType {
   access_token: string;
   refresh_token?: string;
   expires_in?: number;
+  scope: string;
+  token_type: string;
+  id_token: string;
+  expiry_date: number;
 }
 
 export interface User {
@@ -108,4 +114,10 @@ export interface EmailDetails {
   body?: string;
   bodyHtml?: string;
   snippet: string;
+}
+
+export interface DecodedIdToken extends JwtPayload {
+  email: string;
+  given_name: string;
+  family_name: string;
 }
