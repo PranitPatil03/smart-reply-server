@@ -38,3 +38,11 @@ export const fetchUserEmailsHandler = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to fetch user emails" });
   }
 };
+
+//Todo: first fetches user recent mails then gives context of each mail and store it in db
+export const mailContext = async (req: Request, res: Response) => {
+  const emailId = req.body;
+
+  try {
+  } catch (error) {}
+};
