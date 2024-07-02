@@ -1,7 +1,7 @@
 import { cache } from "..";
 import { TokenType } from "../util/types";
 import { Request, Response } from "express";
-
+import { PrismaClient } from "@prisma/client";
 import { mapToEmailData, UserEmail } from "../util/util";
 
 import {
@@ -9,6 +9,8 @@ import {
   fetchUserEmails,
   saveUserEmails,
 } from "../services/mails";
+
+const prisma = new PrismaClient();
 
 export const fetchUserEmailsHandler = async (req: Request, res: Response) => {
   const userId = "unique_user_identifier";
@@ -41,8 +43,34 @@ export const fetchUserEmailsHandler = async (req: Request, res: Response) => {
 
 //Todo: first fetches user recent mails then gives context of each mail and store it in db
 export const mailContext = async (req: Request, res: Response) => {
-  const emailId = req.body;
+  const { emailId } = req.body;
+  console.log(emailId);
+  console.log("body", req.body);
+
+  if (!emailId) {
+    return res.status(400).json({ status: "emailId is required" });
+  }
 
   try {
-  } catch (error) {}
+    const user = await prisma.user.findUnique({
+      where: {
+        email: emailId,
+      },
+      include: {
+        Email: true,
+      },
+    });
+
+    if (user) {
+      console.log("User", user);
+      return res.status(200).json({ status: "user found in db", user });
+    } else {
+      return res.status(404).json({ status: "user not found" });
+    }
+  } catch (error: any) {
+    console.error("Error finding user:", error);
+    return res
+      .status(500)
+      .json({ status: "error finding user", error: error.message });
+  }
 };
